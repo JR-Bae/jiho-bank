@@ -5,9 +5,11 @@ import { useTheme } from 'next-themes';
 import { Moon, Sun, Type } from 'lucide-react';
 import { fonts } from '@/lib/fonts';
 import Image from 'next/image';
+import { saveTransaction } from '@/lib/transactions';
+import { uploadToBlob } from '@/lib/blob';
 
 interface Transaction {
-    id: number;
+    id: string;
     type: 'add' | 'spend';
     amount: number;
     memo?: string | null;
@@ -113,7 +115,7 @@ export default function PiggyBank() {
             setBalance(newBalance);
 
             const newTransaction: Transaction = {
-                id: Date.now(),
+                id: Date.now().toString(),
                 type: 'add',
                 amount: Number(amount),
                 memo: null,
@@ -138,7 +140,7 @@ export default function PiggyBank() {
         const memo = prompt('어디에 사용했나요? (선택사항)');
         const wantPhoto = confirm('사진을 추가할까요?');
 
-        let photo = null;
+        let photoUrl = null;
         if (wantPhoto) {
             const input = document.createElement('input');
             input.type = 'file';
@@ -153,48 +155,21 @@ export default function PiggyBank() {
             });
 
             if (file) {
-                photo = await new Promise<string>((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(file);
-                });
+                photoUrl = await uploadToBlob(file);
             }
         }
 
-        const confirmed = confirm(`
-      금액: ${Number(amount).toLocaleString()}원
-      내용: ${memo || '(없음)'}
-      사진: ${photo ? '있음' : '없음'}
-      
-      저장하시겠습니까?
-    `);
+        const transaction: Transaction = {
+            id: Date.now().toString(),
+            type: 'spend',
+            amount: Number(amount),
+            memo: memo || null,
+            photo: photoUrl,
+            date: new Date().toISOString(),
+        };
 
-        if (confirmed) {
-            const newBalance = balance - Number(amount);
-            if (newBalance < 0) {
-                alert('잔액이 부족합니다!');
-                return;
-            }
-
-            setBalance(newBalance);
-
-            const newTransaction: Transaction = {
-                id: Date.now(),
-                type: 'spend',
-                amount: Number(amount),
-                memo: memo || null,
-                photo: photo,
-                date: new Date().toISOString()
-            };
-
-            const newTransactions = [newTransaction, ...transactions];
-            setTransactions(newTransactions);
-
-            localStorage.setItem('piggybank-data', JSON.stringify({
-                balance: newBalance,
-                transactions: newTransactions
-            }));
-        }
+        await saveTransaction(transaction);
+        setTransactions([transaction, ...transactions]);
     };
 
     const handleFontChange = (index: number) => {
