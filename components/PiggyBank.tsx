@@ -7,6 +7,8 @@ import { fonts } from '@/lib/fonts';
 import Image from 'next/image';
 import { saveTransaction } from '@/lib/transactions';
 import { uploadToBlob } from '@/lib/blob';
+import { Redis } from '@upstash/redis';
+import { put } from '@vercel/blob';
 
 interface Transaction {
     id: string;
@@ -103,12 +105,17 @@ export default function PiggyBank() {
         return result.trim() + '원';
     };
 
+    const redis = new Redis({
+        url: process.env.KV_REST_API_URL || '',
+        token: process.env.KV_REST_API_TOKEN || '',
+    });
+
     const handleAddMoney = async () => {
         const amount = prompt('얼마를 넣을까요?');
         if (!amount || isNaN(Number(amount))) return;
 
         setIsAnimating(true);
-        setTimeout(() => {
+        setTimeout(async () => {
             setIsAnimating(false);
 
             const newBalance = balance + Number(amount);
@@ -126,10 +133,19 @@ export default function PiggyBank() {
             const newTransactions = [newTransaction, ...transactions];
             setTransactions(newTransactions);
 
-            localStorage.setItem(
-                'piggybank-data',
-                JSON.stringify({ balance: newBalance, transactions: newTransactions })
-            );
+            // Redis에 데이터 저장
+            try {
+                await redis.set(`transaction:${newTransaction.id}`, newTransaction);
+                await redis.set('currentBalance', newBalance);
+            } catch (err) {
+                console.error('Redis 저장 중 오류 발생:', err);
+            }
+
+            // // 로컬 스토리지 백업 (선택)
+            // localStorage.setItem(
+            //     'piggybank-data',
+            //     JSON.stringify({ balance: newBalance, transactions: newTransactions })
+            // );
         }, 1000);
     };
 
