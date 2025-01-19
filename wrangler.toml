@@ -1,0 +1,8 @@
+name = "jiho-bank" # 프로젝트 이름
+compatibility_date = "2025-01-19" # 오늘 날짜를 넣으세요
+
+[env]
+NODE_VERSION = "23.6.0" # 현재 사용 중인 Node.js 버전
+
+[build]
+command = "npm run build"
