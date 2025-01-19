@@ -117,16 +117,16 @@ export default function PiggyBank() {
                 amount: Number(amount),
                 memo: null,
                 photo: null,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
             };
 
             const newTransactions = [newTransaction, ...transactions];
             setTransactions(newTransactions);
 
-            localStorage.setItem('piggybank-data', JSON.stringify({
-                balance: newBalance,
-                transactions: newTransactions
-            }));
+            localStorage.setItem(
+                'piggybank-data',
+                JSON.stringify({ balance: newBalance, transactions: newTransactions })
+            );
         }, 1000);
     };
 
@@ -207,10 +207,9 @@ export default function PiggyBank() {
     }, []);
 
     if (!mounted) {
-        return null;  // 또는 로딩 상태 표시
+        return null; // 또는 로딩 상태 표시
     }
 
-    // 테마 토글 버튼 부분 수정
     const toggleTheme = () => {
         setTheme(theme === 'dark' ? 'light' : 'dark');
     };
@@ -250,7 +249,7 @@ export default function PiggyBank() {
                             className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                             aria-label="Toggle theme"
                         >
-                            {mounted && theme === 'dark' ? <Sun size={24}/> : <Moon size={24}/>}
+                            {mounted && theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
                         </button>
                     </div>
                 </div>
@@ -259,26 +258,18 @@ export default function PiggyBank() {
 
             {/* 잔액 표시 */}
             <div className="text-center mb-8">
-                <div className="text-4xl font-bold mb-2">
-                    {balance.toLocaleString()}원
-                </div>
-                <div className="text-xl text-gray-600 dark:text-gray-400">
-                    {formatKoreanNumber(balance)}
-                </div>
+                <div className="text-4xl font-bold mb-2">{balance.toLocaleString()}원</div>
+                <div className="text-xl text-gray-600 dark:text-gray-400">{formatKoreanNumber(balance)}</div>
             </div>
 
             {/* 저금통 + 애니메이션 */}
             <div className="relative h-40 mb-8">
                 {isAnimating && (
-                    <div className="absolute w-full drop-coin">
+                    <div className="absolute drop-coin">
                         <img src="/money.png" alt="돈" className="w-16 h-16 mx-auto" />
                     </div>
                 )}
-                <img
-                    src="/piggy.png"
-                    alt="저금통"
-                    className="w-32 h-32 mx-auto"
-                />
+                <img src="/piggy.png" alt="저금통" className="w-32 h-32 mx-auto" />
             </div>
 
             {/* 버튼 */}
