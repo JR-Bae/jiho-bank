@@ -46,15 +46,19 @@ export default function PiggyBank() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Redis에서 트랜잭션과 현재 잔액 가져오기
                 const transactionsFromRedis = await getTransactions();
-                const balanceFromRedis = await redis.get<number>('currentBalance');
 
-                // 2. 상태 업데이트
-                setBalance(balanceFromRedis || 0);
-                setTransactions(transactionsFromRedis);
+                let balanceFromRedis = await redis.get<number>('currentBalance');
+                if (balanceFromRedis === null) {
+                    balanceFromRedis = 0;
+                    await redis.set('currentBalance', balanceFromRedis);
+                }
 
-                // 3. 글꼴 설정 (로컬 스토리지 사용)
+                setBalance(balanceFromRedis);
+
+                // transactionsFromRedis에서 null 값 필터링
+                setTransactions(transactionsFromRedis.filter((tx): tx is Transaction => tx !== null));
+
                 const savedFont = localStorage.getItem('selected-font');
                 if (savedFont) {
                     setCurrentFont(Number(savedFont));
@@ -62,7 +66,6 @@ export default function PiggyBank() {
             } catch (error) {
                 console.error('Redis 데이터 가져오기 오류:', error);
 
-                // Redis 호출 실패 시 로컬 스토리지 데이터 사용
                 const savedData = localStorage.getItem('piggybank-data');
                 if (savedData) {
                     const data = JSON.parse(savedData);
@@ -73,7 +76,8 @@ export default function PiggyBank() {
         };
 
         fetchData();
-    }, []);
+    }, [redis]); // redis를 의존성 배열에 추가
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
