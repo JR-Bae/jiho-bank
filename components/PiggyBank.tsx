@@ -52,7 +52,6 @@ export default function PiggyBank() {
 
                 // 2. 상태 업데이트
                 setBalance(balanceFromRedis || 0);
-                // @ts-ignore
                 setTransactions(transactionsFromRedis);
 
                 // 3. 글꼴 설정 (로컬 스토리지 사용)

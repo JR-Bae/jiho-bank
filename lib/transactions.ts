@@ -13,7 +13,7 @@ export const saveTransaction = async (transaction: Transaction) => {
     await kv.set(`transaction:${transaction.id}`, transaction);
 };
 
-export const getTransactions = async (): Promise<Transaction[]> => {
+export const getTransactions = async (): Promise<Awaited<Transaction | null>[]> => {
     // Redis에서 'transaction:*' 키들을 가져옴
     const keys = await kv.keys('transaction:*');
 
