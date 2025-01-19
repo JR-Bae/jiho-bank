@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { Moon, Sun, Type } from 'lucide-react';
 import { fonts } from '@/lib/fonts';
 import Image from 'next/image';
-import { saveTransaction } from '@/lib/transactions';
+import { saveTransaction, getTransactions } from '@/lib/transactions';
 import { uploadToBlob } from '@/lib/blob';
 import { Redis } from '@upstash/redis';
 
@@ -38,20 +38,39 @@ export default function PiggyBank() {
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
+    const redis = Redis.fromEnv();
 
     useEffect(() => {
-        const savedData = localStorage.getItem('piggybank-data');
-        const savedFont = localStorage.getItem('selected-font');
+        const fetchData = async () => {
+            try {
+                // 1. Redis에서 트랜잭션과 현재 잔액 가져오기
+                const transactionsFromRedis = await getTransactions();
+                const balanceFromRedis = await redis.get<number>('currentBalance');
 
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            setBalance(data.balance);
-            setTransactions(data.transactions);
-        }
+                // 2. 상태 업데이트
+                setBalance(balanceFromRedis || 0);
+                // @ts-ignore
+                setTransactions(transactionsFromRedis);
 
-        if (savedFont) {
-            setCurrentFont(Number(savedFont));
-        }
+                // 3. 글꼴 설정 (로컬 스토리지 사용)
+                const savedFont = localStorage.getItem('selected-font');
+                if (savedFont) {
+                    setCurrentFont(Number(savedFont));
+                }
+            } catch (error) {
+                console.error('Redis 데이터 가져오기 오류:', error);
+
+                // Redis 호출 실패 시 로컬 스토리지 데이터 사용
+                const savedData = localStorage.getItem('piggybank-data');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    setBalance(data.balance);
+                    setTransactions(data.transactions);
+                }
+            }
+        };
+
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -103,11 +122,6 @@ export default function PiggyBank() {
 
         return result.trim() + '원';
     };
-
-    const redis = new Redis({
-        url: process.env.KV_REST_API_URL || '',
-        token: process.env.KV_REST_API_TOKEN || '',
-    });
 
     const handleAddMoney = async () => {
         const amount = prompt('얼마를 넣을까요?');
