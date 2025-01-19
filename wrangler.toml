@@ -4,6 +4,3 @@ pages_build_output_dir = "./out"
 
 [vars]
 NODE_VERSION = "23.6.0" # 현재 사용 중인 Node.js 버전
-
-[build]
-command = "npm run build"
