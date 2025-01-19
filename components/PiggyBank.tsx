@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Type } from 'lucide-react';
 import { fonts } from '@/lib/fonts';
+import Image from 'next/image';
 
 interface Transaction {
     id: number;
@@ -76,7 +77,7 @@ export default function PiggyBank() {
         let numStr = num.toString();
 
         while (numStr.length > 0) {
-            let chunk = numStr.slice(-4);
+            const chunk = numStr.slice(-4);
             numStr = numStr.slice(0, -4);
 
             let chunkResult = '';
@@ -268,13 +269,19 @@ export default function PiggyBank() {
             <div className="relative h-40 mb-8">
                 {isAnimating && (
                     <div className="absolute drop-coin">
-                        <img src="/money.png" alt="돈" className="w-16 h-16 mx-auto"/>
+                        <Image src="/money.png" alt="돈" className="w-16 h-16 mx-auto"
+                               width={128}
+                               height={128}
+                               layout="intrinsic"/>
                     </div>
                 )}
-                <img
+                <Image
                     src="/piggy.png"
                     alt="저금통"
                     className="w-32 h-32 mx-auto"
+                    width={128}
+                    height={128}
+                    layout="intrinsic"
                 />
             </div>
 
@@ -285,7 +292,10 @@ export default function PiggyBank() {
                     onClick={handleAddMoney}
                     className="flex flex-col items-center justify-between p-4 bg-green-100 dark:bg-green-900 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 active:scale-95 transition-transform duration-150 button-touch h-40 w-40"
                 >
-                    <img src="/add-money.png" alt="돈 넣기" className="w-24 h-24 object-contain"/>
+                    <Image src="/add-money.png" alt="돈 넣기" className="w-24 h-24 object-contain"
+                           width={128}
+                           height={128}
+                           layout="intrinsic"/>
                     <span className="text-lg font-bold mt-2">돈 넣기</span>
                 </button>
 
@@ -294,7 +304,10 @@ export default function PiggyBank() {
                     onClick={handleSpendMoney}
                     className="flex flex-col items-center justify-between p-4 bg-red-100 dark:bg-red-900 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 active:scale-95 transition-transform duration-150 button-touch h-40 w-40"
                 >
-                    <img src="/use-money.png" alt="돈 쓰기" className="w-24 h-24 object-contain"/>
+                    <Image src="/use-money.png" alt="돈 쓰기" className="w-24 h-24 object-contain"
+                           width={128}
+                           height={128}
+                           layout="intrinsic"/>
                     <span className="text-lg font-bold mt-2">돈 쓰기</span>
                 </button>
             </div>
@@ -309,10 +322,13 @@ export default function PiggyBank() {
                     >
                         {/* 사진 표시 */}
                         {tx.photo && (
-                            <img
+                            <Image
                                 src={tx.photo}
                                 alt="거래 사진"
                                 className="w-full h-48 object-cover"
+                                width={128}
+                                height={128}
+                                layout="intrinsic"
                             />
                         )}
 
