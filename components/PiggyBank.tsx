@@ -38,7 +38,10 @@ export default function PiggyBank() {
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
-    const redis = Redis.fromEnv();
+    const redis = new Redis({
+        url: 'https://noble-bison-26037.upstash.io',
+        token: 'AWW1AAIjcDFhYjc2Mjc0NTljMGQ0MzgxOTZiZTM3ZDE0MGYzMjkxMnAxMA',
+    })
 
     useEffect(() => {
         const fetchData = async () => {
