@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.font-gaegu, .font-himelody, .font-poorstory, .font-dongle {
+  line-height: 1.5;
+}
+
+.button-text {
+  font-size: 1.25rem !important;
+  line-height: 1.2 !important;
+}
+
+@keyframes dropMoney {
+  0% {
+    transform: translateY(-100%) translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  90% {
+    transform: translateY(80%) translateX(-50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%) translateX(-50%) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.drop-coin {
+  animation: dropMoney 1s ease-in forwards;
+}
+
+.button-touch {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
