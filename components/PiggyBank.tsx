@@ -219,17 +219,19 @@ export default function PiggyBank() {
             {/* 헤더 */}
             <div className="mb-8">
                 <div className="flex justify-end items-center mb-4">
+                    {/* 글꼴 선택 및 테마 전환 버튼 */}
                     <div className="flex gap-2 relative">
                         <div className="font-dropdown">
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                 className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                             >
-                                <Type size={20} />
+                                <Type size={20}/>
                                 <span className="text-sm">글꼴</span>
                             </button>
                             {isDropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50">
+                                <div
+                                    className="absolute right-0 mt-2 w-48 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50">
                                     {fontOptions.map((font, index) => (
                                         <button
                                             key={font.name}
@@ -249,56 +251,63 @@ export default function PiggyBank() {
                             className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                             aria-label="Toggle theme"
                         >
-                            {mounted && theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
+                            {mounted && theme === 'dark' ? <Sun size={24}/> : <Moon size={24}/>}
                         </button>
                     </div>
                 </div>
                 <h1 className="text-3xl font-bold text-center">지호의 저금통</h1>
             </div>
 
-            {/* 잔액 표시 */}
-            <div className="text-center mb-8">
+            {/* 금액 표시 섹션 */}
+            <div className="text-center mb-8 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <div className="text-4xl font-bold mb-2">{balance.toLocaleString()}원</div>
                 <div className="text-xl text-gray-600 dark:text-gray-400">{formatKoreanNumber(balance)}</div>
             </div>
 
-            {/* 저금통 + 애니메이션 */}
+            {/* 저금통 섹션 */}
             <div className="relative h-40 mb-8">
                 {isAnimating && (
                     <div className="absolute drop-coin">
-                        <img src="/money.png" alt="돈" className="w-16 h-16 mx-auto" />
+                        <img src="/money.png" alt="돈" className="w-16 h-16 mx-auto"/>
                     </div>
                 )}
-                <img src="/piggy.png" alt="저금통" className="w-32 h-32 mx-auto" />
+                <img
+                    src="/piggy.png"
+                    alt="저금통"
+                    className="w-32 h-32 mx-auto"
+                />
             </div>
 
-            {/* 버튼 */}
-            <div className="flex justify-center gap-4 mb-8">
+            {/* 버튼 섹션 */}
+            <div className="flex justify-center gap-4 mb-8 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                {/* 돈 넣기 버튼 */}
                 <button
                     onClick={handleAddMoney}
                     className="flex flex-col items-center justify-between p-4 bg-green-100 dark:bg-green-900 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 active:scale-95 transition-transform duration-150 button-touch h-40 w-40"
                 >
-                    <img src="/add-money.png" alt="돈 넣기" className="w-24 h-24 object-contain" />
+                    <img src="/add-money.png" alt="돈 넣기" className="w-24 h-24 object-contain"/>
                     <span className="text-lg font-bold mt-2">돈 넣기</span>
                 </button>
 
+                {/* 돈 쓰기 버튼 */}
                 <button
                     onClick={handleSpendMoney}
                     className="flex flex-col items-center justify-between p-4 bg-red-100 dark:bg-red-900 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 active:scale-95 transition-transform duration-150 button-touch h-40 w-40"
                 >
-                    <img src="/use-money.png" alt="돈 쓰기" className="w-24 h-24 object-contain" />
+                    <img src="/use-money.png" alt="돈 쓰기" className="w-24 h-24 object-contain"/>
                     <span className="text-lg font-bold mt-2">돈 쓰기</span>
                 </button>
             </div>
 
-            {/* 거래 내역 */}
+            {/* 돈 사용 이야기 섹션 */}
             <div className="space-y-4">
                 <h2 className="text-2xl font-bold mb-4">돈 사용한 이야기</h2>
-                {transactions.map(tx => (
+                {transactions.map((tx) => (
                     <div
                         key={tx.id}
                         className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
                     >
+                        {/* 사진 표시 */}
                         {tx.photo && (
                             <img
                                 src={tx.photo}
@@ -306,15 +315,27 @@ export default function PiggyBank() {
                                 className="w-full h-48 object-cover"
                             />
                         )}
+
+                        {/* 거래 내용 */}
                         <div className="p-4">
+                            {/* 메모 */}
                             {tx.memo && (
-                                <p className="text-lg mb-2">{tx.memo}</p>
+                                <p className="text-lg mb-2 text-gray-900 dark:text-gray-100">
+                                    {tx.memo}
+                                </p>
                             )}
-                            <div className="flex justify-between text-sm text-gray-500">
+                            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                {/* 거래 날짜 */}
                                 <span>{new Date(tx.date).toLocaleString()}</span>
-                                <span className={tx.type === 'add' ? 'text-green-500' : 'text-red-500'}>
-                  {tx.type === 'add' ? '+' : '-'}{tx.amount.toLocaleString()}원
-                </span>
+                                {/* 금액 */}
+                                <span
+                                    className={`text-lg font-bold ${
+                                        tx.type === 'add' ? 'text-green-500' : 'text-red-500'
+                                    }`}
+                                >
+                        {tx.type === 'add' ? '+' : '-'}
+                                    {tx.amount.toLocaleString()}원
+                    </span>
                             </div>
                         </div>
                     </div>
@@ -322,4 +343,5 @@ export default function PiggyBank() {
             </div>
         </div>
     );
+
 }
