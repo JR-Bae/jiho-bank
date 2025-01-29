@@ -40,7 +40,7 @@ export default function PiggyBank() {
                 const response = await fetch('/api/transactions');
                 const { transactions, balance } = await response.json();
                 setBalance(balance);
-                setTransactions(transactions);
+                setTransactions(sortTransactionsByDate(transactions));
 
                 const savedFont = localStorage.getItem('selected-font');
                 if (savedFont) setCurrentFont(Number(savedFont));
