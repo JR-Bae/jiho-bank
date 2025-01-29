@@ -364,6 +364,7 @@ export default function PiggyBank() {
                                         className="w-full h-auto max-h-[70vh] object-contain mx-auto"
                                         quality={95}
                                         priority={transactions.indexOf(tx) < 2}
+                                        unoptimized // 추가: Vercel의 자동 이미지 최적화 비활성화
                                     />
                                 </div>
                             </div>
