@@ -142,7 +142,6 @@ export default function PiggyBank() {
         }, 1000);
     };
 
-
     const handleSpendMoney = async () => {
         const amount = prompt('얼마를 사용할까요?');
         if (!amount || isNaN(Number(amount))) return;
@@ -172,6 +171,7 @@ export default function PiggyBank() {
                 });
 
                 if (file) {
+                    // 📌 최적화된 이미지를 Blob에 업로드하고 URL을 받음
                     photoUrl = await uploadToBlob(file);
                 }
             } catch (error) {
@@ -190,7 +190,7 @@ export default function PiggyBank() {
                 date: new Date().toISOString(),
             };
 
-            // API 요청을 통해 서버에서 저장 & 잔액 업데이트
+            // 📌 API 요청을 통해 서버에서 트랜잭션 저장 & 잔액 업데이트
             const response = await fetch('/api/transactions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -211,7 +211,6 @@ export default function PiggyBank() {
             alert('사용 내역 저장에 실패했습니다. 다시 시도해주세요.');
         }
     };
-
 
 
     const handleFontChange = (index: number) => {
