@@ -6,12 +6,12 @@ export async function optimizeImage(file: File): Promise<Blob> {
 
     // 이미지 크기에 따른 동적 스케일 계산
     let maxDimension = 1600; // 기본 최대 크기
-    let quality = 0.9;      // 기본 품질
+    let jpegQuality = 0.85;  // JPEG 폴백시 사용할 품질
 
     // 파일 크기가 1MB 이상인 경우 추가 최적화
     if (file.size > 1024 * 1024) {
         maxDimension = 1200;
-        quality = 0.85;
+        jpegQuality = 0.8;
     }
 
     const scale = Math.min(
@@ -38,7 +38,7 @@ export async function optimizeImage(file: File): Promise<Blob> {
                     canvas.toBlob(
                         resolve,
                         'image/jpeg',
-                        0.85
+                        jpegQuality
                     );
                 } else {
                     resolve(blob);
