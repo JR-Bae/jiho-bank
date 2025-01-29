@@ -29,6 +29,11 @@ export default function PiggyBank() {
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
 
+    // 정렬 함수 추가
+    const sortTransactionsByDate = (transactions: Transaction[]): Transaction[] => {
+        return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -132,7 +137,7 @@ export default function PiggyBank() {
 
                 // 상태 업데이트
                 setBalance(newBalance);
-                setTransactions((prev) => [newTransaction, ...prev]);
+                setTransactions(prev => sortTransactionsByDate([newTransaction, ...prev]));
 
                 alert('저금이 완료되었습니다!');
             } catch (error) {
@@ -220,7 +225,7 @@ export default function PiggyBank() {
             const { newBalance } = await response.json();
 
             setBalance(newBalance);
-            setTransactions((prev) => [newTransaction, ...prev]);
+            setTransactions(prev => sortTransactionsByDate([newTransaction, ...prev]));
 
             alert('사용 내역이 저장되었습니다!');
         } catch (error) {
