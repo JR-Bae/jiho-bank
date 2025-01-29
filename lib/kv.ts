@@ -1,8 +1,6 @@
 import { Redis } from '@upstash/redis';
 
-const redis = new Redis({
-    url: 'https://noble-bison-26037.upstash.io',
-    token: 'AWW1AAIjcDFhYjc2Mjc0NTljMGQ0MzgxOTZiZTM3ZDE0MGYzMjkxMnAxMA',
-})
-
-export const kv = redis;
+export const kv = new Redis({
+    url: process.env.KV_URL!,
+    token: process.env.KV_REST_API_TOKEN!,
+});

@@ -5,18 +5,8 @@ import { useTheme } from 'next-themes';
 import { Moon, Sun, Type } from 'lucide-react';
 import { fonts } from '@/lib/fonts';
 import Image from 'next/image';
-import { saveTransaction, getTransactions } from '@/lib/transactions';
+import { Transaction } from '@/types/transaction';
 import { uploadToBlob } from '@/lib/blob';
-import { Redis } from '@upstash/redis';
-
-interface Transaction {
-    id: string;
-    type: 'add' | 'spend';
-    amount: number;
-    memo?: string | null;
-    photo?: string | null;
-    date: string;
-}
 
 interface FontOption {
     name: string;
@@ -38,45 +28,25 @@ export default function PiggyBank() {
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
-    const redis = new Redis({
-        url: 'https://noble-bison-26037.upstash.io',
-        token: 'AWW1AAIjcDFhYjc2Mjc0NTljMGQ0MzgxOTZiZTM3ZDE0MGYzMjkxMnAxMA',
-    })
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const transactionsFromRedis = await getTransactions();
-
-                let balanceFromRedis = await redis.get<number>('currentBalance');
-                if (balanceFromRedis === null) {
-                    balanceFromRedis = 0;
-                    await redis.set('currentBalance', balanceFromRedis);
-                }
-
-                setBalance(balanceFromRedis);
-
-                // transactionsFromRedis에서 null 값 필터링
-                setTransactions(transactionsFromRedis.filter((tx): tx is Transaction => tx !== null));
+                const response = await fetch('/api/transactions');
+                const { transactions, balance } = await response.json();
+                setBalance(balance);
+                setTransactions(transactions);
 
                 const savedFont = localStorage.getItem('selected-font');
-                if (savedFont) {
-                    setCurrentFont(Number(savedFont));
-                }
+                if (savedFont) setCurrentFont(Number(savedFont));
             } catch (error) {
-                console.error('Redis 데이터 가져오기 오류:', error);
-
-                const savedData = localStorage.getItem('piggybank-data');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                    setBalance(data.balance);
-                    setTransactions(data.transactions);
-                }
+                console.error('데이터 로드 중 오류 발생:', error);
             }
         };
 
         fetchData();
-    }, [redis]); // redis를 의존성 배열에 추가
+    }, []);
+
 
 
     useEffect(() => {
@@ -133,79 +103,116 @@ export default function PiggyBank() {
         const amount = prompt('얼마를 넣을까요?');
         if (!amount || isNaN(Number(amount))) return;
 
-        setIsAnimating(true);
+        const amountValue = Number(amount);
+
+        setIsAnimating(true); // 💰 애니메이션 시작
         setTimeout(async () => {
-            setIsAnimating(false);
+            setIsAnimating(false); // 💰 애니메이션 종료
 
-            const newBalance = balance + Number(amount);
-            setBalance(newBalance);
-
-            const newTransaction: Transaction = {
-                id: Date.now().toString(),
-                type: 'add',
-                amount: Number(amount),
-                memo: null,
-                photo: null,
-                date: new Date().toISOString(),
-            };
-
-            const newTransactions = [newTransaction, ...transactions];
-            setTransactions(newTransactions);
-
-            // Redis에 데이터 저장
             try {
-                await redis.set(`transaction:${newTransaction.id}`, newTransaction);
-                await redis.set('currentBalance', newBalance);
-            } catch (err) {
-                console.error('Redis 저장 중 오류 발생:', err);
-            }
+                const newTransaction: Transaction = {
+                    id: Date.now().toString(),
+                    type: 'add',
+                    amount: amountValue,
+                    memo: null,
+                    photo: null,
+                    date: new Date().toISOString(),
+                };
 
-            // // 로컬 스토리지 백업 (선택)
-            // localStorage.setItem(
-            //     'piggybank-data',
-            //     JSON.stringify({ balance: newBalance, transactions: newTransactions })
-            // );
+                // API 요청을 통해 서버에서 저장 & 잔액 업데이트
+                const response = await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transaction: newTransaction, amount: amountValue }),
+                });
+
+                if (!response.ok) throw new Error('서버 오류 발생');
+
+                const { newBalance } = await response.json();
+
+                // 상태 업데이트
+                setBalance(newBalance);
+                setTransactions((prev) => [newTransaction, ...prev]);
+
+                alert('저금이 완료되었습니다!');
+            } catch (error) {
+                console.error('저금 처리 중 오류 발생:', error);
+                alert('저금 처리에 실패했습니다. 다시 시도해주세요.');
+            }
         }, 1000);
     };
+
 
     const handleSpendMoney = async () => {
         const amount = prompt('얼마를 사용할까요?');
         if (!amount || isNaN(Number(amount))) return;
 
+        const amountValue = Number(amount);
+        if (amountValue > balance) {
+            alert('잔액이 부족합니다!');
+            return;
+        }
+
         const memo = prompt('어디에 사용했나요? (선택사항)');
         const wantPhoto = confirm('사진을 추가할까요?');
 
-        let photoUrl = null;
+        let photoUrl: string | null = null;
         if (wantPhoto) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
+            try {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
 
-            const file = await new Promise<File | null>((resolve) => {
-                input.onchange = (e) => {
-                    const files = (e.target as HTMLInputElement).files;
-                    resolve(files ? files[0] : null);
-                };
-                input.click();
-            });
+                const file = await new Promise<File | null>((resolve) => {
+                    input.onchange = (e) => {
+                        const files = (e.target as HTMLInputElement).files;
+                        resolve(files ? files[0] : null);
+                    };
+                    input.click();
+                });
 
-            if (file) {
-                photoUrl = await uploadToBlob(file);
+                if (file) {
+                    photoUrl = await uploadToBlob(file);
+                }
+            } catch (error) {
+                console.error('사진 업로드 실패:', error);
+                alert('사진 업로드에 실패했습니다. 다시 시도해주세요.');
             }
         }
 
-        const transaction: Transaction = {
-            id: Date.now().toString(),
-            type: 'spend',
-            amount: Number(amount),
-            memo: memo || null,
-            photo: photoUrl,
-            date: new Date().toISOString(),
-        };
+        try {
+            const newTransaction: Transaction = {
+                id: Date.now().toString(),
+                type: 'spend',
+                amount: amountValue,
+                memo: memo || null,
+                photo: photoUrl,
+                date: new Date().toISOString(),
+            };
 
-        await saveTransaction(transaction);
-        setTransactions([transaction, ...transactions]);
+            // API 요청을 통해 서버에서 저장 & 잔액 업데이트
+            const response = await fetch('/api/transactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transaction: newTransaction, amount: -amountValue }),
+            });
+
+            if (!response.ok) throw new Error('서버 오류 발생');
+
+            const { newBalance } = await response.json();
+
+            // 상태 업데이트
+            setBalance(newBalance);
+            setTransactions((prev) => [newTransaction, ...prev]);
+
+            alert('사용 내역이 저장되었습니다!');
+        } catch (error) {
+            console.error('사용 내역 저장 중 오류 발생:', error);
+            alert('사용 내역 저장에 실패했습니다. 다시 시도해주세요.');
+        }
     };
+
+
 
     const handleFontChange = (index: number) => {
         setCurrentFont(index);
