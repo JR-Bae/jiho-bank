@@ -354,21 +354,26 @@ export default function PiggyBank() {
                     >
                         {/* 사진 표시 */}
                         {tx.photo && (
-                            <Image
-                                src={tx.photo}
-                                alt="거래 사진"
-                                className="w-full h-48 object-cover"
-                                width={128}
-                                height={128}
-                                layout="intrinsic"
-                            />
+                            <div className="w-full bg-background">
+                                <div className="relative w-full" style={{ maxHeight: '70vh' }}>
+                                    <Image
+                                        src={tx.photo}
+                                        alt="거래 사진"
+                                        width={800}
+                                        height={1200}
+                                        className="w-full h-auto max-h-[70vh] object-contain mx-auto"
+                                        quality={95}
+                                        priority={transactions.indexOf(tx) < 2}
+                                    />
+                                </div>
+                            </div>
                         )}
 
                         {/* 거래 내용 */}
                         <div className="p-4">
                             {/* 메모 */}
                             {tx.memo && (
-                                <p className="text-lg mb-2 text-gray-900 dark:text-gray-100">
+                                <p className="text-lg mb-2 text-foreground">
                                     {tx.memo}
                                 </p>
                             )}
@@ -381,9 +386,9 @@ export default function PiggyBank() {
                                         tx.type === 'add' ? 'text-green-500' : 'text-red-500'
                                     }`}
                                 >
-                        {tx.type === 'add' ? '+' : '-'}
+                    {tx.type === 'add' ? '+' : '-'}
                                     {tx.amount.toLocaleString()}원
-                    </span>
+                </span>
                             </div>
                         </div>
                     </div>
