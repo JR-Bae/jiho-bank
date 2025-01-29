@@ -315,10 +315,10 @@ export default function PiggyBank() {
                 <Image
                     src="/piggy.png"
                     alt="저금통"
-                    className="w-32 h-32 mx-auto"
-                    width={128}
-                    height={128}
-                    layout="intrinsic"
+                    className="w-40 h-40 mx-auto" /* 크기 증가 */
+                    width={256}
+                    height={256}
+                    priority
                 />
             </div>
 
