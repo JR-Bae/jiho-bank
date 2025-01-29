@@ -6,7 +6,7 @@ import { Moon, Sun, Type } from 'lucide-react';
 import { fonts } from '@/lib/fonts';
 import Image from 'next/image';
 import { Transaction } from '@/types/transaction';
-import { uploadToBlob } from '@/lib/blob';
+import { optimizeImage } from '@/lib/imageUtils';  // uploadToBlob 대신 optimizeImage 임포트
 
 interface FontOption {
     name: string;
@@ -171,12 +171,31 @@ export default function PiggyBank() {
                 });
 
                 if (file) {
-                    // 📌 최적화된 이미지를 Blob에 업로드하고 URL을 받음
-                    photoUrl = await uploadToBlob(file);
+                    // 이미지 최적화
+                    const optimizedBlob = await optimizeImage(file);
+
+                    // 안전한 파일명 생성
+                    const timestamp = Date.now();
+                    const safeFilename = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+
+                    // API route를 통해 업로드
+                    const response = await fetch(`/api/upload?filename=uploads/${safeFilename}`, {
+                        method: 'POST',
+                        body: optimizedBlob,
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to upload image');
+                    }
+
+                    const blobData = await response.json();
+                    photoUrl = blobData.url;
                 }
             } catch (error) {
                 console.error('사진 업로드 실패:', error);
                 alert('사진 업로드에 실패했습니다. 다시 시도해주세요.');
+                return;
             }
         }
 
@@ -190,7 +209,6 @@ export default function PiggyBank() {
                 date: new Date().toISOString(),
             };
 
-            // 📌 API 요청을 통해 서버에서 트랜잭션 저장 & 잔액 업데이트
             const response = await fetch('/api/transactions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -201,7 +219,6 @@ export default function PiggyBank() {
 
             const { newBalance } = await response.json();
 
-            // 상태 업데이트
             setBalance(newBalance);
             setTransactions((prev) => [newTransaction, ...prev]);
 
@@ -211,7 +228,6 @@ export default function PiggyBank() {
             alert('사용 내역 저장에 실패했습니다. 다시 시도해주세요.');
         }
     };
-
 
     const handleFontChange = (index: number) => {
         setCurrentFont(index);
