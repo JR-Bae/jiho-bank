@@ -1,58 +1,47 @@
 // lib/imageUtils.ts
 export async function optimizeImage(file: File): Promise<Blob> {
-    const imageBitmap = await createImageBitmap(file);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    let maxDimension = 1200; // 시작 크기
+    let attempts = 0;
+    let optimizedBlob: Blob | null = null;
 
-    // 이미지 크기에 따른 동적 스케일 계산
-    let maxDimension = 1600; // 기본 최대 크기
-    let jpegQuality = 0.85;  // JPEG 폴백시 사용할 품질
+    while (attempts < 5) { // 최대 5번 시도
+        const imageBitmap = await createImageBitmap(file);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
 
-    // 파일 크기가 1MB 이상인 경우 추가 최적화
-    if (file.size > 1024 * 1024) {
-        maxDimension = 1200;
-        jpegQuality = 0.8;
+        const scale = Math.min(
+            maxDimension / imageBitmap.width,
+            maxDimension / imageBitmap.height,
+            1
+        );
+
+        canvas.width = Math.round(imageBitmap.width * scale);
+        canvas.height = Math.round(imageBitmap.height * scale);
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+
+        optimizedBlob = await new Promise<Blob | null>(resolve =>
+            canvas.toBlob(resolve, 'image/png')
+        );
+
+        if (!optimizedBlob) {
+            throw new Error('Image optimization failed');
+        }
+
+        // 500KB = 512,000 bytes
+        if (optimizedBlob.size <= 512000) {
+            break;
+        }
+
+        // 파일이 여전히 크면 크기를 20% 줄임
+        maxDimension = Math.floor(maxDimension * 0.8);
+        attempts++;
     }
 
-    const scale = Math.min(
-        maxDimension / imageBitmap.width,
-        maxDimension / imageBitmap.height,
-        1
-    );
-
-    canvas.width = Math.round(imageBitmap.width * scale);
-    canvas.height = Math.round(imageBitmap.height * scale);
-
-    // 이미지 렌더링 품질 향상
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
-
-    // PNG 포맷으로 변환
-    const optimizedBlob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob(
-            (blob) => {
-                // PNG로 변환했는데도 4.5MB 이상이면 JPG로 재시도
-                if (blob && blob.size > 4.5 * 1024 * 1024) {
-                    canvas.toBlob(
-                        resolve,
-                        'image/jpeg',
-                        jpegQuality
-                    );
-                } else {
-                    resolve(blob);
-                }
-            },
-            'image/png'
-        );
-    });
-
-    if (!optimizedBlob) throw new Error('Image optimization failed');
-
-    // 최종 크기가 4.5MB를 초과하면 에러
-    if (optimizedBlob.size > 4.5 * 1024 * 1024) {
-        throw new Error('Image is too large. Please try a smaller image.');
+    if (!optimizedBlob || optimizedBlob.size > 512000) {
+        throw new Error('Could not optimize image to under 500KB. Please try a smaller image.');
     }
 
     return optimizedBlob;
