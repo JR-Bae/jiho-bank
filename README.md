@@ -48,7 +48,7 @@ npm run dev
 yarn dev
 ```
 
-서버가 실행되면 브라우저에서 http://localhost:3000을 열어 확인하세요.
+서버가 실행되면 브라우저에서 http://localhost:3000 을 열어 확인하세요.
 
 ---
 
