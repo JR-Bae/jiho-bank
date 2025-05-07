@@ -3,13 +3,13 @@ import { createClient } from 'redis';
 // Redis Cloud 연결
 export const kv = createClient({
     username: 'default',
-    password: 'y1w6o6O4rpprvZbIc2qAGBwzQG8kWfl1', // Redis Cloud 비밀번호
+    password: 'PtIvkkn9D4FAJcYZr7adMsMS3oIcPsRI', // Redis Cloud 비밀번호
     socket: {
-        host: 'redis-13290.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com', // Redis Cloud 호스트
-        port: 13290, // Redis Cloud 포트
+        host: 'redis-13622.c279.us-central1-1.gce.redns.redis-cloud.com', // Redis Cloud 호스트
+        port: 13622, // Redis Cloud 포트
     },
 });
-
+//redis-cli -u redis://default:PtIvkkn9D4FAJcYZr7adMsMS3oIcPsRI@redis-13622.c279.us-central1-1.gce.redns.redis-cloud.com:13622
 // 오류 핸들링
 kv.on('error', (err) => console.error('❌ Redis Client Error:', err));
 
